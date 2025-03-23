@@ -1,0 +1,19 @@
+---
+# tasks file for clone_repo
+- name: Check if role is enabled
+  debug:
+    msg: "Role is disabled"
+  when: not gitlab_clone_enabled
+
+- name: clone
+  ansible.builtin.git:
+    repo: "https://{{ gitlab_username }}:{{ gitlab_token }}@{{ gitlab_repo_url | regex_replace('https://', '') }}"
+    dest: "{{ gitlab_clone_dest }}"
+    version: "{{ gitlab_version }}"
+  when: gitlab_clone_enabled | bool
+#  no_log: true  # Скрыть токен в логах
+  tags: clone
+
+- name: Include tasks to install npm packages and run server
+  include_tasks: install_site.yml
+  when: gitlab_clone_enabled

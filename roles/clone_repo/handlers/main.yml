@@ -1,0 +1,17 @@
+---
+# handlers file for clone_repo
+ - name: Check site status
+   uri:
+     url: "http://127.0.0.1:3000"
+     status_code: 200
+   register: site_status
+   retries: 5
+   delay: 5
+
+# - name: Fail if site is down
+#   fail:
+#     msg: "Сайт недоступен после 5 попыток!"
+#   when: site_status is failed
+ - name: Debug site status
+   debug:
+     var: site_status

@@ -1,0 +1,12 @@
+---
+# defaults file for clone_repo
+gitlab_clone_enabled: true
+
+gitlab_repo_url: "https://devops-gitlab.inno.ws/devops-board/nodejs-ansible"
+
+gitlab_clone_dest: "/user/local"
+
+gitlab_version: "master"
+
+gitlab_username: "pavel.abalonik"
+folder_name: "{{ gitlab_repo_url | basename }}"

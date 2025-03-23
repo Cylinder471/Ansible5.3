@@ -1,0 +1,28 @@
+#---
+#- name: Update packages npm with package.json
+#  npm:
+#    path: "{{ gitlab_clone_dest }}/{{ folder_name }}"
+#    state: latest
+#
+#- name: Start website with PM2
+#  shell: |
+#    cd {{ gitlab_clone_dest }}/{{ folder_name }}
+#    node index.js
+#  async: 100
+#  poll: 0
+#  notify: "Check site status"
+---
+- name: Npm packages install | Run website
+  block:
+    - name: Install npm packages
+      npm:
+        path: "{{ gitlab_clone_dest }}/{{ folder_name }}"
+        state: present
+
+    - name: Start website
+      shell: |
+        cd {{ gitlab_clone_dest }}/{{ folder_name }}
+        node index.js
+      async: 30
+      poll: 0
+      notify: "Check site status"

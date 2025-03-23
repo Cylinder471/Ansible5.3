@@ -1,0 +1,69 @@
+---
+- name: Check if Node.js is installed
+  command: node -v
+  register: node_check
+  ignore_errors: yes
+  changed_when: false
+
+- name: Download Node.js binary (local)
+  ansible.builtin.get_url:
+    url: "{{ nodejs_base_url }}/{{ nodejs_tarball }}"
+    dest: "/tmp/{{ nodejs_tarball }}"
+    mode: '0644'
+  delegate_to: localhost
+  become: no
+  when: node_check.rc != 0
+
+- name: Unpack Node.js
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ nodejs_tarball }}"
+    dest: /usr/local
+    creates: "{{ nodejs_install_dir }}"
+  when: node_check.rc != 0
+  become: yes
+
+- name: Chech
+  debug:
+    msg: " /usr/local/node-{{ nodejs_version }}-linux-x64/bin/node"
+
+- name: Create symlink for node in /usr/sbin
+  ansible.builtin.file:
+    src: "/usr/local/node-v{{ nodejs_version }}-linux-x64/bin/node"
+    dest: "{{ nodejs_symlink }}"
+    state: link
+    mode: '0755'
+  when: node_check.rc != 0
+  become: yes
+
+- name: Create symlink for npm in /usr/sbin
+  ansible.builtin.file:
+    src: "/usr/local/node-v{{ nodejs_version }}-linux-x64/bin/npm"
+    dest: "/usr/sbin/npm"
+    state: link
+    mode: '0755'
+  when: node_check.rc != 0
+  become: yes
+
+- name: Add Node.js and npm to PATH for current session
+  ansible.builtin.shell: |
+    echo 'export PATH=$PATH:/usr/local/node-v{{ nodejs_version }}-linux-x64/bin' > /etc/profile.d/nodejs.sh
+    source /etc/profile.d/nodejs.sh
+  args:
+    executable: /bin/bash
+
+
+- name: Install npm packages globally
+  npm:
+    name: "{{ item }}"
+    global: yes
+    executable: /usr/local/node-v{{ nodejs_version }}-linux-x64/bin/npm
+  with_items:
+    - package1
+    - package2
+
+- name: Clean up downloaded tarball on localhost
+  ansible.builtin.file:
+    path: "/tmp/{{ nodejs_tarball }}"
+    state: absent
+  delegate_to: localhost
+  become: no
