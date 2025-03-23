@@ -1,3 +1,2 @@
 [ubuntu_servers]
-Linux1 ansible_host=192.168.100.11
-
+Linux1 ansible_host=192.168.100.13

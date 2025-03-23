@@ -22,10 +22,6 @@
   when: node_check.rc != 0
   become: yes
 
-- name: Chech
-  debug:
-    msg: " /usr/local/node-{{ nodejs_version }}-linux-x64/bin/node"
-
 - name: Create symlink for node in /usr/sbin
   ansible.builtin.file:
     src: "/usr/local/node-v{{ nodejs_version }}-linux-x64/bin/node"
@@ -43,23 +39,6 @@
     mode: '0755'
   when: node_check.rc != 0
   become: yes
-
-- name: Add Node.js and npm to PATH for current session
-  ansible.builtin.shell: |
-    echo 'export PATH=$PATH:/usr/local/node-v{{ nodejs_version }}-linux-x64/bin' > /etc/profile.d/nodejs.sh
-    source /etc/profile.d/nodejs.sh
-  args:
-    executable: /bin/bash
-
-
-- name: Install npm packages globally
-  npm:
-    name: "{{ item }}"
-    global: yes
-    executable: /usr/local/node-v{{ nodejs_version }}-linux-x64/bin/npm
-  with_items:
-    - package1
-    - package2
 
 - name: Clean up downloaded tarball on localhost
   ansible.builtin.file:

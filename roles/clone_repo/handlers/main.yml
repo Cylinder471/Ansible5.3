@@ -8,10 +8,7 @@
    retries: 5
    delay: 5
 
-# - name: Fail if site is down
-#   fail:
-#     msg: "Сайт недоступен после 5 попыток!"
-#   when: site_status is failed
- - name: Debug site status
-   debug:
-     var: site_status
+ - name: Fail if site is down
+   fail:
+     msg: "Site unreacheable after 5 tries!"
+   when: site_status is failed
