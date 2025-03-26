@@ -1,48 +1,22 @@
 ---
-- name: Check if Node.js is installed
+- name: Check Node.js installation
   command: node -v
   register: node_check
   ignore_errors: yes
   changed_when: false
+  tags: nodejs
 
-- name: Download Node.js binary (local)
-  ansible.builtin.get_url:
-    url: "{{ nodejs_base_url }}/{{ nodejs_tarball }}"
-    dest: "/tmp/{{ nodejs_tarball }}"
-    mode: '0644'
-  delegate_to: localhost
-  become: no
-  when: node_check.rc != 0
+- name: Include OS-specific installation
+  include_tasks: "{{ 'install_' + ansible_os_family | lower }}.yml"
+  when:
+    - node_check.rc != 0
+    - ansible_os_family in ['Debian', 'Windows', 'Darwin']
+  tags: nodejs
 
-- name: Unpack Node.js
-  ansible.builtin.unarchive:
-    src: "/tmp/{{ nodejs_tarball }}"
-    dest: /usr/local
-    creates: "{{ nodejs_install_dir }}"
-  when: node_check.rc != 0
-  become: yes
-
-- name: Create symlink for node in /usr/sbin
-  ansible.builtin.file:
-    src: "/usr/local/node-v{{ nodejs_version }}-linux-x64/bin/node"
-    dest: "{{ nodejs_symlink }}"
-    state: link
-    mode: '0755'
-  when: node_check.rc != 0
-  become: yes
-
-- name: Create symlink for npm in /usr/sbin
-  ansible.builtin.file:
-    src: "/usr/local/node-v{{ nodejs_version }}-linux-x64/bin/npm"
-    dest: "/usr/sbin/npm"
-    state: link
-    mode: '0755'
-  when: node_check.rc != 0
-  become: yes
-
-- name: Clean up downloaded tarball on localhost
-  ansible.builtin.file:
-    path: "/tmp/{{ nodejs_tarball }}"
-    state: absent
-  delegate_to: localhost
-  become: no
+- name: Fail on unsupported OS
+  fail:
+    msg: "Unsupported OS family: {{ ansible_os_family }}"
+  when:
+    - node_check.rc != 0
+    - ansible_os_family not in ['Debian', 'Windows', 'Darwin']
+  tags: nodejs

@@ -1,0 +1,59 @@
+---
+- name: Install Node.js on MacOS
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check if Node.js is installed
+      ansible.builtin.command: node --version
+      register: node_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Ensure temp directory exists
+      ansible.builtin.file:
+        path: "/tmp"
+        state: directory
+        mode: '0777'
+      when: node_check.rc != 0
+
+    - name: Download Node.js binary
+      ansible.builtin.get_url:
+        url: "{{ nodejs_base_url }}/{{ nodejs_tarball_macos }}"
+        dest: "/tmp/{{ nodejs_tarball_macos }}"
+        mode: '0644'
+      when: node_check.rc != 0
+
+    - name: Unpack Node.js
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ nodejs_tarball_macos }}"
+        dest: "/usr/local"
+        creates: "{{ nodejs_install_dir }}"
+        remote_src: yes
+      when: node_check.rc != 0
+
+    - name: Rename extracted directory to standard name
+      ansible.builtin.command: mv "/usr/local/node-v{{ nodejs_version }}-darwin-x64" "{{ nodejs_install_dir }}"
+      args:
+        creates: "{{ nodejs_install_dir }}"
+      when: node_check.rc != 0
+
+    - name: Add Node.js bin to PATH in /etc/paths
+      ansible.builtin.lineinfile:
+        path: "/etc/paths"
+        line: "{{ nodejs_install_dir }}/bin"
+        state: present
+      when: node_check.rc != 0
+
+    - name: Install npm packages
+      community.general.npm:
+        name: "{{ item }}"
+        state: present
+        global: yes
+      loop: "{{ npm_packages }}"
+      when: node_check.rc != 0
+
+    - name: Clean up downloaded tarball
+      ansible.builtin.file:
+        path: "/tmp/{{ nodejs_tarball_macos }}"
+        state: absent
+      when: node_check.rc != 0
