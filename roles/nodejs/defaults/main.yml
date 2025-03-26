@@ -4,6 +4,7 @@ nodejs_version: "20.11.0"
 nodejs_arch: "x64"
 nodejs_base_url: "https://nodejs.org/dist/v{{ nodejs_version }}"
 nodejs_tarball: "node-v{{ nodejs_version }}-linux-{{ nodejs_arch }}.tar.xz"
+nodejs_tarball_win: "node-v{{ nodejs_version }}-win-x64.zip"
 nodejs_install_dir: "/usr/local/node"
 nodejs_symlink: "/usr/sbin/node"
 npm_packages: []

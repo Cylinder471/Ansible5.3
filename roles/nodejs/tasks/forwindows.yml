@@ -1,0 +1,56 @@
+---
+- name: Install Node.js on Windows
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check if Node.js is installed
+      win_command: node --version
+      register: node_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Download Node.js binary
+      community.general.win_get_url:
+        url: "https://nodejs.org/dist/{{ nodejs_version }}/{{ nodejs_tarball_win }}"
+        dest: "C:\temp\{{ nodejs_tarball_win }}"
+      when: node_check.rc != 0
+
+    - name: Unpack Node.js
+      community.general.win_unzip:
+        src: "C:\temp\{{ nodejs_tarball_win }}"
+        dest: "C:\Program Files\Node.js"
+      when: node_check.rc != 0
+
+    - name: Move contents to root of Node.js directory
+      win_copy:
+        src: "C:\Program Files\Node.js\\node-v{{ nodejs_version }}-win-x64\\"
+        dest: "C:\Program Files\Node.js\\"
+        remote_src: yes
+      when: node_check.rc != 0
+
+    - name: Remove the extracted directory
+      win_file:
+        path: "C:\Program Files\Node.js\\node-v{{ nodejs_version }}-win-x64"
+        state: absent
+      when: node_check.rc != 0
+
+    - name: Add Node.js bin directory to PATH
+      community.general.win_path:
+        name: PATH
+        state: present
+        value: "C:\Program Files\Node.js\\bin"
+      when: node_check.rc != 0
+
+    - name: Install npm packages
+      community.general.npm:
+        name: "{{ item }}"
+        state: present
+        global: yes
+      loop: "{{ npm_packages }}"
+      when: node_check.rc != 0
+
+    - name: Clean up downloaded zip file
+      win_file:
+        path: "C:\temp\{{ nodejs_tarball_win }}"
+        state: absent
+      when: node_check.rc != 0
