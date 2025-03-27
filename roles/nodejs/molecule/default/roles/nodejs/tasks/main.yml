@@ -1,0 +1,22 @@
+---
+- name: Check Node.js installation
+  command: node -v
+  register: node_check
+  ignore_errors: yes
+  changed_when: false
+  tags: nodejs
+
+- name: Include OS-specific installation
+  include_tasks: "{{ 'install_' + ansible_os_family | lower }}.yml"
+  when:
+    - node_check.rc != 0
+    - ansible_os_family in ['Debian', 'Windows', 'Darwin']
+  tags: nodejs
+
+- name: Fail on unsupported OS
+  fail:
+    msg: "Unsupported OS family: {{ ansible_os_family }}"
+  when:
+    - node_check.rc != 0
+    - ansible_os_family not in ['Debian', 'Windows', 'Darwin']
+  tags: nodejs

@@ -1,0 +1,21 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Verify Node.js installation
+      ansible.builtin.command: node --version
+      register: node_version
+      changed_when: false
+      failed_when: node_version.rc != 0
+
+    - name: Verify npm installation
+      ansible.builtin.command: npm --version
+      register: npm_version
+      changed_when: false
+      failed_when: npm_version.rc != 0
+
+    - name: Debug versions
+      ansible.builtin.debug:
+        msg: |
+          Node.js: {{ node_version.stdout }}
+          npm: {{ npm_version.stdout }}

@@ -1,8 +1,15 @@
 ---
+#- name: Converge
+#  hosts: all
+#  roles:
+#  - role: nodejs
 - name: Converge
-  hosts: all
+  hosts: windows
   gather_facts: false
   tasks:
-    - name: Replace this task with one that validates your content
-      ansible.builtin.debug:
-        msg: "This is the effective test"
+    - name: Include Windows tasks
+      include_role:
+        name: nodejs
+      vars:
+        ansible_connection: winrm
+        ansible_winrm_server_cert_validation: ignore

@@ -1,7 +1,24 @@
 ---
+#driver:
+#  name: docker
+#platforms:
+#  - name: instance
+#    image: geerlingguy/docker-ubuntu2204-ansible
+#    pre_build_image: true
+#    privileged: true
+#    volumes:
+#      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
 driver:
   name: docker
 platforms:
-  - name: instance
-    image: quay.io/centos/centos:stream8
+  - name: windows-instance
+    image: sixeyed/windowsservercore
     pre_build_image: true
+    groups:
+      - windows
+    winrm_username: Administrator
+    winrm_password: Password123!  # Измените на свой пароль
+    winrm_port: 5986
+    winrm_transport: ntlm
+    volumes:
+      - "c:\\host\\path:c:\\container\\path"  # Пример маппинга томов
